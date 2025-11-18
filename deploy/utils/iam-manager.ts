@@ -52,11 +52,16 @@ export class IamManager {
         return role.Role.Arn;
       } catch (roleError: any) {
         // Both NoSuchEntity and "role cannot be found" indicate the role doesn't exist
-        if (
-          !roleError.name?.includes("NoSuchEntity") &&
-          !roleError.message?.includes("cannot be found")
-        ) {
-          logger.error(`Unexpected error checking role: ${roleError?.message}`);
+        // Check multiple error properties to handle different AWS SDK error formats
+        const isRoleNotFound =
+          roleError.name === "NoSuchEntity" ||
+          roleError.Code === "NoSuchEntity" ||
+          roleError.message?.includes("NoSuchEntity") ||
+          roleError.message?.includes("cannot be found") ||
+          roleError.$metadata?.httpStatusCode === 404;
+
+        if (!isRoleNotFound) {
+          logger.error(`Unexpected error checking role: ${roleError?.name || roleError?.Code} - ${roleError?.message}`);
           throw roleError;
         }
         logger.debug(`Role ${roleName} does not exist, creating...`);

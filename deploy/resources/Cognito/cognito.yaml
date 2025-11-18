@@ -20,7 +20,7 @@ Resources:
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
-      UserPoolName: !Sub "nlmonorepo-cct-userpool-${Stage}"
+      UserPoolName: !Sub "${AppName}-userpool-${Stage}"
       Schema:
         - Name: email
           AttributeDataType: String
@@ -31,7 +31,7 @@ Resources:
           MinimumLength: 8
       MfaConfiguration: "OFF"
       UserPoolTags:
-        Stack: !Sub "nlmonorepo-cct-${Stage}"
+        Stack: !Sub "cct-${Stage}"
       LambdaConfig:
         PostConfirmation: !If
           - HasPostConfirmationLambda
@@ -42,13 +42,13 @@ Resources:
   UserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Sub "nlmonorepo-cct-${Stage}"
+      Domain: !Sub "cct-${Stage}"
       UserPoolId: !Ref UserPool
 
   UserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: !Sub "nlmonorepo-cct-client-${Stage}"
+      ClientName: !Sub "cct-client-${Stage}"
       UserPoolId: !Ref UserPool
       GenerateSecret: false
       SupportedIdentityProviders:

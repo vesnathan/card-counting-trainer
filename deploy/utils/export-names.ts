@@ -13,9 +13,9 @@ export function candidateExportNames(
 ): string[] {
   const appName = getAppNameForStackType(stackType);
 
-  const parameterized = `nlmonorepo-${appName}-${stage}-${logicalKey}`;
-  const alt1 = `nlmonorepo-${appName}example-${stage}-${logicalKey}`;
-  const legacy1 = `${appName.toUpperCase()}${logicalKey[0].toUpperCase() + logicalKey.slice(1)}`; // e.g., AWSEUserPoolId
+  const parameterized = `${appName}-${stage}-${logicalKey}`;
+  const legacy1 = `nlmonorepo-${appName}-${stage}-${logicalKey}`; // Legacy naming with monorepo prefix
+  const legacy2 = `${appName.toUpperCase()}${logicalKey[0].toUpperCase() + logicalKey.slice(1)}`; // e.g., AWSEUserPoolId
 
-  return [parameterized, alt1, legacy1];
+  return [parameterized, legacy1, legacy2];
 }

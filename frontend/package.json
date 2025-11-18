@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
-    "build-gql": "ts-node -TP ../../../tsconfig.node.json ./scripts/buildGql.ts",
+    "build-gql": "ts-node -P ./tsconfig.scripts.json ./scripts/buildGql.ts",
     "update-env": "bash ./scripts/update-env-from-aws.sh"
   },
   "dependencies": {
@@ -48,6 +48,9 @@
     "eslint-config-next": "15.0.2",
     "postcss": "^8.4.47",
     "eslint-import-resolver-typescript": "^3.5.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "@graphql-codegen/cli": "^6.0.2",
+    "@graphql-codegen/typescript": "^5.0.4",
+    "@graphql-codegen/typescript-operations": "^5.0.4"
   }
 }

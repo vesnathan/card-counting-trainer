@@ -4,13 +4,22 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "deploy"
   ],
   "scripts": {
     "dev": "yarn workspace cctfrontend dev:local",
     "build": "yarn workspace cctfrontend build",
     "lint": "yarn workspace cctfrontend lint",
-    "tsc": "yarn workspace cctfrontend tsc --noEmit"
+    "tsc": "yarn workspace cctfrontend tsc --noEmit",
+    "deploy": "yarn workspace @card-counting-trainer/deploy deploy",
+    "deploy:dev": "yarn workspace @card-counting-trainer/deploy deploy:dev",
+    "deploy:prod": "yarn workspace @card-counting-trainer/deploy deploy:prod",
+    "delete-stack": "bash -c 'source ./deploy/utils/set-aws-env.sh && node deploy/utils/delete-stack.js cardcountingtrainer-dev'",
+    "delete-stack:wait": "bash -c 'source ./deploy/utils/set-aws-env.sh && node deploy/utils/delete-stack.js cardcountingtrainer-dev --wait'",
+    "cleanup-orphans": "bash -c 'source ./deploy/utils/set-aws-env.sh && cd deploy && npx ts-node utils/orphan-cleanup.ts dev'",
+    "cleanup-orphans:dry-run": "bash -c 'source ./deploy/utils/set-aws-env.sh && cd deploy && npx ts-node utils/orphan-cleanup.ts dev --dry-run'",
+    "clean-deploy": "yarn deploy:dev --action replace"
   },
   "devDependencies": {
     "typescript": "^5.5.4"

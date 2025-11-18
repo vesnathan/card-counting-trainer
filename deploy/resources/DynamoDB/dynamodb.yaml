@@ -5,13 +5,13 @@ Parameters:
   AppName:
     Type: String
     Description: Application Name
-    Default: bjcct
+    Default: cardcountingtrainer
 
 Resources:
   DynamoDBRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub nlmonorepo-${AppName}-dynamodb-${Stage}
+      RoleName: !Sub ${AppName}-dynamodb-${Stage}
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -32,7 +32,7 @@ Resources:
   AppSyncDynamoDBRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub nlmonorepo-${AppName}-appsync-dynamodb-${Stage}
+      RoleName: !Sub ${AppName}-appsync-dynamodb-${Stage}
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -70,7 +70,7 @@ Resources:
     Type: AWS::DynamoDB::Table
     DependsOn: DynamoDBRole
     Properties:
-      TableName: !Sub "nlmonorepo-${AppName}-datatable-${Stage}"
+      TableName: !Sub "${AppName}-datatable-${Stage}"
       AttributeDefinitions:
         - AttributeName: "PK"
           AttributeType: "S"
@@ -112,16 +112,16 @@ Outputs:
     Description: "Name of the DynamoDB table"
     Value: !Ref CCTDataTable
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-datatable-name-${Stage}"
+      Name: !Sub "${AppName}-datatable-name-${Stage}"
 
   DataTableArn:
     Description: "ARN of the DynamoDB table"
     Value: !GetAtt CCTDataTable.Arn
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-datatable-arn-${Stage}"
+      Name: !Sub "${AppName}-datatable-arn-${Stage}"
 
   AppSyncDynamoDBRoleArn:
     Description: "ARN of the IAM role for AppSync to access DynamoDB"
     Value: !GetAtt AppSyncDynamoDBRole.Arn
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-appsync-dynamodb-role-arn-${Stage}"
+      Name: !Sub "${AppName}-appsync-dynamodb-role-arn-${Stage}"

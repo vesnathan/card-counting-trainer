@@ -20,19 +20,19 @@ import {
   ListExportsCommand,
 } from "@aws-sdk/client-cloudformation";
 import { logger } from "./logger";
-import { REGEX } from "../../shared/constants/RegEx"; // Corrected import
-import { CWL_COGNITO_GROUPS } from "../../cloudwatchlive/backend/constants/ClientTypes";
-import { COGNITO_GROUPS as AWSE_COGNITO_GROUPS } from "../../aws-example/backend/constants/ClientTypes";
 import { StackType, getStackName } from "../types";
 import { OutputsManager } from "../outputs-manager";
 import { candidateExportNames } from "../utils/export-names";
 import { getAppNameForStackType } from "../utils/stack-utils";
-import { COGNITO_GROUPS as TSH_COGNITO_GROUPS } from "../../the-story-hub/backend/constants/ClientTypes";
-import { COGNITO_GROUPS as CCT_COGNITO_GROUPS } from "../../card-counting-trainer/backend/constants/ClientTypes";
+import { COGNITO_GROUPS as CCT_COGNITO_GROUPS } from "../../backend/constants/ClientTypes";
 
-// NOTE: Add your stack's short name here when bootstrapping a new package
-// This type is used for Cognito user setup - add the short name (e.g., "tsf" for The Story Forge)
-export type StackTypeForUser = "cwl" | "awse" | "tsh" | "cct";
+// Email regex for validation
+const REGEX = {
+  EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+};
+
+// NOTE: This is Card Counting Trainer standalone deployment - only supports "cardcountingtrainer"
+export type StackTypeForUser = "cardcountingtrainer";
 
 // STACK_TYPE_CONFIG: Configuration mapping for user setup per stack type
 // When bootstrapping a new package, add an entry here with the stack's configuration
@@ -45,28 +45,7 @@ interface StackTypeConfig {
 }
 
 const STACK_TYPE_CONFIG: Record<StackTypeForUser, StackTypeConfig> = {
-  cwl: {
-    stackTypeEnum: StackType.CWL,
-    cognitoGroups: CWL_COGNITO_GROUPS,
-    outputKey: "CWLUserPoolId",
-    adminGroup: "SuperAdmin",
-    usesSimpleSchema: false,
-  },
-  awse: {
-    stackTypeEnum: StackType.AwsExample,
-    cognitoGroups: AWSE_COGNITO_GROUPS,
-    outputKey: "AWSEUserPoolId",
-    adminGroup: "SiteAdmin",
-    usesSimpleSchema: true,
-  },
-  tsh: {
-    stackTypeEnum: StackType.TheStoryHub,
-    cognitoGroups: TSH_COGNITO_GROUPS,
-    outputKey: "UserPoolId",
-    adminGroup: "SiteAdmin",
-    usesSimpleSchema: true,
-  },
-  cct: {
+  cardcountingtrainer: {
     stackTypeEnum: StackType.CardCountingTrainer,
     cognitoGroups: CCT_COGNITO_GROUPS,
     outputKey: "UserPoolId",
@@ -98,7 +77,7 @@ export class UserSetupManager {
   private region: string;
   private stackType: StackTypeForUser;
 
-  constructor(region = "ap-southeast-2", stackType: StackTypeForUser = "cwl") {
+  constructor(region = "ap-southeast-2", stackType: StackTypeForUser = "cardcountingtrainer") {
     this.region = region;
     this.stackType = stackType;
     this.cognitoClient = new CognitoIdentityProviderClient({ region });
@@ -153,7 +132,7 @@ export class UserSetupManager {
 
     // Get user table name based on stack type
     const appNameForTable = getAppNameForStackType(this.getStackTypeEnum());
-    const tableName = `nlmonorepo-${appNameForTable}-datatable-${stage}`;
+    const tableName = `${appNameForTable}-datatable-${stage}`;
     await this.verifyTableExists(tableName);
 
     // Get admin email if not provided
@@ -282,7 +261,7 @@ export class UserSetupManager {
             new CreateGroupCommand({
               UserPoolId: userPoolId,
               GroupName: groupName,
-              Description: `Auto-created ${groupName} group for nlmonorepo-${stage}`,
+              Description: `Auto-created ${groupName} group for ${stage}`,
             }),
           );
           logger.debug(`Created group: ${groupName}`);
@@ -290,10 +269,21 @@ export class UserSetupManager {
           logger.debug(`Group '${groupName}' already exists`);
         }
       }
-    } catch (error) {
-      logger.error(
-        `Error ensuring user groups: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Error ensuring user groups: ${errorMessage || 'No error message'}`);
+
+      // Log AWS SDK specific error properties
+      if (error && typeof error === 'object') {
+        if (error.name) logger.debug(`Error name: ${error.name}`);
+        if (error.code) logger.debug(`Error code: ${error.code}`);
+        if (error.$metadata) logger.debug(`AWS Metadata: ${JSON.stringify(error.$metadata)}`);
+        if (error.message) logger.debug(`Error message: ${error.message}`);
+        if (error.stack) logger.debug(`Error stack: ${error.stack}`);
+
+        // Log full error object
+        logger.debug(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`);
+      }
       throw error;
     }
   }
@@ -360,10 +350,29 @@ export class UserSetupManager {
       }
       return subAttribute.Value;
     } catch (error: any) {
-      if (error.name === "UserNotFoundException") {
+      // Log the error details to understand its structure
+      logger.debug(`Caught error in createOrGetCognitoUser: ${JSON.stringify({
+        name: error.name,
+        code: error.code,
+        message: error.message,
+        constructor: error.constructor?.name,
+      })}`);
+
+      // Check for UserNotFoundException in multiple ways for robustness
+      const isUserNotFound =
+        error.name === "UserNotFoundException" ||
+        error.code === "UserNotFoundException" ||
+        error.message?.includes("UserNotFoundException") ||
+        (error.message && error.message.includes("User does not exist"));
+
+      if (isUserNotFound) {
+        logger.debug("User not found, creating new user...");
         // User doesn't exist, create them
         return await this.createNewCognitoUser(userPoolId, userEmail);
       }
+
+      // Re-throw any other error
+      logger.error(`Unexpected error in createOrGetCognitoUser: ${error.name || error.code || error.message}`);
       throw error;
     }
   }

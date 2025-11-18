@@ -86,6 +86,14 @@ All projects share common patterns for auth, routing, components, and AWS infras
 - `yarn lint` - Run linter
 - `yarn tsc` - Type check TypeScript without emitting files
 
+### Deployments
+
+**⚠️ CRITICAL: Claude MUST NEVER run deploy commands directly**
+- **NEVER run any deployment commands** (e.g., `yarn deploy`, `npm run deploy`, AWS CLI deployments)
+- **ONLY the user should run deployments** - they take a long time and should be manually controlled
+- When the user asks about deployment, explain what needs to be deployed and what command they should run
+- You may prepare code, templates, and configurations for deployment, but NEVER execute the deployment yourself
+
 ### Git Commit Process
 
 - **ALWAYS run these commands BEFORE staging and committing**:

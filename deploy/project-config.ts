@@ -149,14 +149,14 @@ export const PROJECT_CONFIGS: Record<StackType, ProjectConfig> = {
     packageDir: "card-counting-trainer",
     dependsOn: [],
     buckets: {
-      templates: "nlmonorepo-cardcountingtrainer-templates-{stage}",
-      frontend: "nlmonorepo-cardcountingtrainer-userfiles-{stage}",
-      additional: ["nlmonorepo-{stage}-cfn-templates-{region}"],
+      templates: "cardcountingtrainer-templates-{stage}",
+      frontend: "cardcountingtrainer-userfiles-{stage}",
+      additional: ["cardcountingtrainer-{stage}-cfn-templates-{region}"],
     },
     hasFrontend: true,
-    hasLambdas: false,
-    hasResolvers: false,
-    requiresAdminUser: false,
+    hasLambdas: true,
+    hasResolvers: true,
+    requiresAdminUser: true,
   },
 
   [StackType.LawnOrder]: {

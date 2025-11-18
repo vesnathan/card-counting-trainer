@@ -5,7 +5,8 @@
 # Path to the root .env file (absolute path)
 # Use BASH_SOURCE so this works whether the script is executed or sourced
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT_ENV_FILE="${SCRIPT_DIR}/.env"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+ROOT_ENV_FILE="${PROJECT_ROOT}/.env"
 
 # Check if the .env file exists
 if [ ! -f "$ROOT_ENV_FILE" ]; then

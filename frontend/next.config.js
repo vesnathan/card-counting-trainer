@@ -3,7 +3,7 @@ const { join } = require("path");
 
 function getDeploymentOutputs() {
   try {
-    const p = join(__dirname, "../../deploy/deployment-outputs.json");
+    const p = join(__dirname, "../deploy/deployment-outputs.json");
     const raw = readFileSync(p, "utf8");
     const parsed = JSON.parse(raw);
 
@@ -30,9 +30,9 @@ function getDeploymentOutputs() {
     }));
 
     // Helper: produce prioritized candidate export names for this app
-    const appName = "cct"; // short app identifier for card-counting-trainer
+    const appName = "cardcountingtrainer"; // app identifier matching CloudFormation
     function paramCandidates(suffix) {
-      const base = `nlmonorepo-${appName}-${stage}-${suffix}`;
+      const base = `${appName}-${stage}-${suffix}`;
       return [base.toLowerCase(), suffix.toLowerCase()];
     }
 
@@ -118,6 +118,8 @@ if (!isLinting) {
 module.exports = {
   // Only use static export for production builds (not dev server)
   ...(process.env.NODE_ENV === "production" && { output: "export" }),
+  // Set explicit project root to avoid workspace root inference issues
+  outputFileTracingRoot: join(__dirname, ".."),
   env: {
     NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT,
     NEXT_PUBLIC_USE_LOCAL_DATA:

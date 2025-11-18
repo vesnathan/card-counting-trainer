@@ -9,7 +9,7 @@ Parameters:
   AppName:
     Type: String
     Description: Application short name (used in export names)
-    Default: bjcct
+    Default: cardcountingtrainer
   TemplateBucketName:
     Type: String
     Description: Name of the S3 bucket containing nested stack templates
@@ -106,58 +106,58 @@ Outputs:
     Description: AppSync API URL
     Value: !GetAtt AppSyncStack.Outputs.AppSyncApiUrl
     Export:
-      Name: !Sub nlmonorepo-${AppName}-${Stage}-api-url
+      Name: !Sub ${AppName}-${Stage}-api-url
 
   ApiId:
     Description: AppSync API ID
     Value: !GetAtt AppSyncStack.Outputs.AppSyncApiId
     Export:
-      Name: !Sub nlmonorepo-${AppName}-${Stage}-api-id
+      Name: !Sub ${AppName}-${Stage}-api-id
 
   UserPoolId:
     Description: "Cognito User Pool ID for the application"
     Value: !GetAtt CognitoStack.Outputs.UserPoolId
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-user-pool-id"
+      Name: !Sub "${AppName}-${Stage}-user-pool-id"
 
   UserPoolClientId:
     Description: "Cognito User Pool Client ID for the application"
     Value: !GetAtt CognitoStack.Outputs.UserPoolClientId
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-user-pool-client-id"
+      Name: !Sub "${AppName}-${Stage}-user-pool-client-id"
 
   UserPoolDomain:
     Description: "Cognito User Pool Domain for OAuth"
     Value: !GetAtt CognitoStack.Outputs.UserPoolDomain
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-user-pool-domain"
+      Name: !Sub "${AppName}-${Stage}-user-pool-domain"
 
   CloudFrontDistributionId:
     Description: "CloudFront Distribution ID"
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDistributionId
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-cloudfront-distribution-id"
+      Name: !Sub "${AppName}-${Stage}-cloudfront-distribution-id"
 
   CloudFrontDomainName:
     Description: "CloudFront Distribution Domain Name"
     Value: !GetAtt CloudFrontStack.Outputs.CloudFrontDomainName
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-cloudfront-domain-name"
+      Name: !Sub "${AppName}-${Stage}-cloudfront-domain-name"
 
   DataTableName:
     Description: "DynamoDB Table Name"
     Value: !GetAtt DynamoDBStack.Outputs.DataTableName
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-data-table-name"
+      Name: !Sub "${AppName}-${Stage}-data-table-name"
 
   WebsiteBucket:
     Description: "S3 bucket for frontend website assets"
     Value: !GetAtt S3Stack.Outputs.FrontendBucketName
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-website-bucket"
+      Name: !Sub "${AppName}-${Stage}-website-bucket"
 
   UserPoolDomain:
     Description: "Cognito User Pool Domain"
     Value: !GetAtt CognitoStack.Outputs.UserPoolDomain
     Export:
-      Name: !Sub "nlmonorepo-${AppName}-${Stage}-user-pool-domain"
+      Name: !Sub "${AppName}-${Stage}-user-pool-domain"

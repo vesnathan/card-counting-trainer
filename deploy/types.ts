@@ -8,8 +8,15 @@ export interface StackConfig {
   stage: string;
 }
 
+export enum DeploymentAction {
+  UPDATE = "update", // Update existing stack
+  REPLACE = "replace", // Delete and recreate stack
+  REMOVE = "remove", // Delete stack only
+}
+
 export interface DeploymentOptions {
   stage: string;
+  action?: DeploymentAction; // Deployment action to take
   region?: string;
   autoDeleteFailedStacks?: boolean;
   skipFrontendBuild?: boolean;
@@ -70,7 +77,7 @@ export const TEMPLATE_PATHS: Record<StackType, string> = {
   ),
   [StackType.CardCountingTrainer]: join(
     __dirname,
-    "templates/card-counting-trainer/cfn-template.yaml",
+    "cfn-template.yaml",
   ),
   [StackType.LawnOrder]: join(
     __dirname,
@@ -88,10 +95,7 @@ export const TEMPLATE_RESOURCES_PATHS: Record<StackType, string> = {
   [StackType.CWL]: join(__dirname, "templates/cwl/"),
   [StackType.AwsExample]: join(__dirname, "templates/aws-example/"),
   [StackType.TheStoryHub]: join(__dirname, "templates/the-story-hub/"),
-  [StackType.CardCountingTrainer]: join(
-    __dirname,
-    "templates/card-counting-trainer/",
-  ),
+  [StackType.CardCountingTrainer]: join(__dirname, "resources/"),
   [StackType.LawnOrder]: join(__dirname, "templates/lawn-order/"),
   [StackType.AppBuilderStudio]: join(
     __dirname,
@@ -100,10 +104,10 @@ export const TEMPLATE_RESOURCES_PATHS: Record<StackType, string> = {
 };
 
 export const getStackName = (stackType: StackType, stage: string) =>
-  `nlmonorepo-${String(stackType).toLowerCase().replace(/_/g, "-")}-${stage}`;
+  `${String(stackType).toLowerCase().replace(/_/g, "-")}-${stage}`;
 
 export const getTemplateBucketName = (stage: string) =>
-  `nlmonorepo-templates-${stage}`;
+  `cardcountingtrainer-templates-${stage}`;
 
 export const getTemplateBody = async (
   stackType: StackType,

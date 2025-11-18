@@ -1,12 +1,24 @@
-schema {
-  query: Query
-  mutation: Mutation
-}
+# Base Schema - Defines root Query, Mutation, and Subscription types
+
+# AWS AppSync Scalars
+scalar AWSDate
+scalar AWSTime
+scalar AWSDateTime
+scalar AWSTimestamp
+scalar AWSEmail
+scalar AWSJSON
+scalar AWSURL
+scalar AWSPhone
+scalar AWSIPAddress
 
 type Query {
   getUser: User @aws_cognito_user_pools @aws_iam
 }
 
 type Mutation {
+  _empty: String
+}
+
+type Subscription {
   _empty: String
 }

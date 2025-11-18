@@ -17,7 +17,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub "nlmonorepo-${AppName}-frontend-${Stage}"
+      BucketName: !Sub "${AppName}-frontend-${Stage}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         BlockPublicPolicy: false
@@ -30,7 +30,7 @@ Resources:
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
-      BucketName: !Sub "nlmonorepo-${AppName}-userfiles-${Stage}"
+      BucketName: !Sub "${AppName}-userfiles-${Stage}"
 
 Outputs:
   FrontendBucketName:

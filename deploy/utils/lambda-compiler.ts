@@ -18,6 +18,7 @@ export interface LambdaCompilerOptions {
   stage?: string;
   region?: string;
   debugMode?: boolean;
+  appName?: string;
 }
 
 interface LambdaFunction {
@@ -38,6 +39,7 @@ export class LambdaCompiler {
   private lambdaClient?: LambdaClient;
   private region?: string;
   private debugMode: boolean;
+  private appName: string;
 
   constructor(options: LambdaCompilerOptions) {
     this.logger = options.logger;
@@ -48,6 +50,7 @@ export class LambdaCompiler {
     this.stage = options.stage || "dev";
     this.region = options.region;
     this.debugMode = options.debugMode || false;
+    this.appName = options.appName || "cardcountingtrainer";
 
     if (this.s3BucketName && options.region) {
       this.s3Client = new S3Client({ region: options.region });
@@ -284,6 +287,10 @@ ${jsCode}`;
     }
   }
 
+  private toKebabCase(str: string): string {
+    return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  }
+
   /**
    * Force update Lambda function code from S3
    * This is necessary because CloudFormation doesn't update Lambda code when only S3 file content changes
@@ -297,7 +304,8 @@ ${jsCode}`;
       return;
     }
 
-    const fullFunctionName = `nlmonorepo-thestoryhub-${functionName}-${this.stage}`;
+    const kebabCaseName = this.toKebabCase(functionName);
+    const fullFunctionName = `${this.appName}-${kebabCaseName}-${this.stage}`;
 
     try {
       const command = new UpdateFunctionCodeCommand({

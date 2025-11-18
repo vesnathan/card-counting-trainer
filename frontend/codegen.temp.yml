@@ -1,7 +1,0 @@
-schema: "/home/liqk1ugzoezh5okwywlr_/dev/nl-mono-repo-agent-1/packages/card-counting-trainer/backend/combined_schema.graphql"
-generates:
-  ./src/types/gqlTypes.ts:
-    plugins:
-      - typescript
-      - typescript-operations
-    config: {}

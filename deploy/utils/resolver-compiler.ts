@@ -39,6 +39,9 @@ export interface ResolverCompilerOptions {
   sharedFileS3Key?: string;
   debugMode?: boolean; // Added debugMode
   constantsDir?: string; // Optional path to constants directory
+  appName?: string; // Optional app name for standalone projects
+  backendPackageJsonPath?: string; // Optional path to backend package.json for standalone projects
+  gqlTypesPath?: string; // Optional path to gqlTypes.ts for standalone projects
 }
 
 class ResolverCompiler {
@@ -55,6 +58,9 @@ class ResolverCompiler {
   private sharedFileS3Key?: string;
   private debugMode: boolean; // Added debugMode
   private constantsDir?: string; // Optional constants directory
+  private appName?: string; // Optional app name for standalone projects
+  private backendPackageJsonPath?: string; // Optional path to backend package.json
+  private gqlTypesPath?: string; // Optional path to gqlTypes.ts
 
   private readonly gqlTypesSourceFileName = "gqlTypes.ts";
 
@@ -71,6 +77,9 @@ class ResolverCompiler {
     this.s3Client = new S3Client({ region: this.region });
     this.debugMode = options.debugMode || false; // Initialize debugMode
     this.constantsDir = options.constantsDir; // Initialize constantsDir
+    this.appName = options.appName; // Initialize appName
+    this.backendPackageJsonPath = options.backendPackageJsonPath; // Initialize backendPackageJsonPath
+    this.gqlTypesPath = options.gqlTypesPath; // Initialize gqlTypesPath
 
     // buildDir is a temporary directory for the entire compilation process of this instance.
     // It will be created by setupBuildDirectory and cleaned up at start of each deploy.
@@ -80,9 +89,10 @@ class ResolverCompiler {
     const parts = this.baseResolverDir.split(path.sep);
     const pkgIndex = parts.indexOf("packages");
     const appName =
-      pkgIndex >= 0 && pkgIndex + 1 < parts.length
+      this.appName ||
+      (pkgIndex >= 0 && pkgIndex + 1 < parts.length
         ? parts[pkgIndex + 1]
-        : "unknown";
+        : "unknown");
     // Use consistent resolvers directory (no timestamp) so it gets cleaned each deploy
     this.buildDir = path.join(
       monorepoRoot,
@@ -94,6 +104,10 @@ class ResolverCompiler {
   }
 
   private getAppName(): string {
+    // If appName was explicitly provided, use it
+    if (this.appName) {
+      return this.appName;
+    }
     // this.baseResolverDir is like /workspaces/nl-mono-repo/packages/cloudwatchlive/backend/resolvers
     const parts = this.baseResolverDir.split(path.sep);
     const packagesIndex = parts.indexOf("packages");
@@ -827,7 +841,7 @@ class ResolverCompiler {
     // Extract app name from baseResolverDir to locate the correct backend package
     const appName = this.getAppName();
     const monorepoRoot = path.join(__dirname, "..", "..", "..");
-    const sourcePackageJsonPath = path.join(
+    const sourcePackageJsonPath = this.backendPackageJsonPath || path.join(
       monorepoRoot,
       "packages",
       appName,
@@ -994,16 +1008,18 @@ class ResolverCompiler {
 
       // Read gqlTypes.ts from the app's frontend or backend generated types
       const appNameForTypes = this.getAppName();
-      const candidatePaths = [
-        path.resolve(
-          __dirname,
-          `../../../packages/${appNameForTypes}/frontend/src/types/gqlTypes.ts`,
-        ),
-        path.resolve(
-          __dirname,
-          `../../../packages/${appNameForTypes}/backend/src/types/gqlTypes.ts`,
-        ),
-      ];
+      const candidatePaths = this.gqlTypesPath
+        ? [this.gqlTypesPath]
+        : [
+            path.resolve(
+              __dirname,
+              `../../../packages/${appNameForTypes}/frontend/src/types/gqlTypes.ts`,
+            ),
+            path.resolve(
+              __dirname,
+              `../../../packages/${appNameForTypes}/backend/src/types/gqlTypes.ts`,
+            ),
+          ];
 
       let gqlTypesSourcePath: string | undefined = undefined;
       for (const p of candidatePaths) {
