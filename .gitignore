@@ -40,12 +40,7 @@ gqlTypes.ts
 **/combined_schema.graphql
 
 # compiled resolvers and Lambda functions (generated during deployment)
-# Use a repo-local cache directory for generated deploy artifacts:
-.cache/deploy/
-.cache/deploy/*/resolvers/
-.cache/deploy/*/lib/
-packages/deploy/templates/cwl/functions/*.js
-packages/deploy/templates/cwl/functions/*.js.map
+.cache/
 
 # nx cache
 .nx/cache

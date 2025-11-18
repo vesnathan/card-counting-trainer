@@ -32,7 +32,7 @@ export async function cleanupLogGroups(
 
     // Search for both Lambda and AppSync LogGroups
     const prefixes = [
-      `/aws/lambda/nlmonorepo-${appName}-`,
+      `/aws/lambda/${appName}-`,
       `/aws/appsync/apis/`,
     ];
 
@@ -51,7 +51,7 @@ export async function cleanupLogGroups(
           .map((lg) => lg.logGroupName!)
           .filter((name) =>
             prefix.includes("lambda")
-              ? name.includes(`nlmonorepo-${appName}-`)
+              ? name.includes(`${appName}-`)
               : name.includes(stage),
           );
         allLogGroups.push(...filtered);

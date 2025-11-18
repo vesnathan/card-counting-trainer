@@ -22,7 +22,7 @@ Resources:
   PostConfirmationFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub "nlmonorepo-cct-postconfirmation-${Stage}"
+      FunctionName: !Sub "${AppName}-postconfirmation-${Stage}"
       Runtime: nodejs20.x
       Handler: index.handler
       Role: !GetAtt PostConfirmationFunctionRole.Arn
@@ -32,17 +32,16 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: !Ref TableName
-          AWS_REGION: !Ref AWS::Region
       Timeout: 30
       MemorySize: 256
       Tags:
         - Key: Stack
-          Value: !Sub "nlmonorepo-cct-${Stage}"
+          Value: !Sub "cct-${Stage}"
 
   PostConfirmationFunctionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub "nlmonorepo-cct-postconfirmation-role-${Stage}"
+      RoleName: !Sub "${AppName}-postconfirmation-role-${Stage}"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:

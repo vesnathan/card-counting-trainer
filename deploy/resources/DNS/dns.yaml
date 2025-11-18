@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "DNS and SSL Certificate for Card Counting Trainer"
+
+Parameters:
+  Stage:
+    Type: String
+    Description: Deployment stage (e.g., dev, prod)
+    AllowedPattern: ^[a-zA-Z0-9-]+$
+  DomainName:
+    Type: String
+    Description: Domain name (e.g., cardcounting.example.com)
+    Default: ""
+  HostedZoneId:
+    Type: String
+    Description: Route53 Hosted Zone ID
+    Default: ""
+  CloudFrontDomainName:
+    Type: String
+    Description: CloudFront distribution domain name
+    Default: ""
+
+Conditions:
+  IsProd: !Equals [!Ref Stage, "prod"]
+  HasDomain: !Not [!Equals [!Ref DomainName, ""]]
+  HasCloudFrontDomain: !Not [!Equals [!Ref CloudFrontDomainName, ""]]
+  CreateCertificate: !And
+    - !Condition IsProd
+    - !Condition HasDomain
+  CreateDNSRecords: !And
+    - !Condition IsProd
+    - !Condition HasDomain
+    - !Condition HasCloudFrontDomain
+
+Resources:
+  # SSL Certificate for CloudFront (must be in us-east-1)
+  ACMCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: CreateCertificate
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames:
+        - !Sub "*.${DomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+      Tags:
+        - Key: Name
+          Value: !Sub "${DomainName}-certificate"
+        - Key: Stage
+          Value: !Ref Stage
+
+  # Route53 A Record pointing to CloudFront
+  CloudFrontAliasRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateDNSRecords
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's fixed hosted zone ID
+        DNSName: !Ref CloudFrontDomainName
+        EvaluateTargetHealth: false
+
+  # WWW subdomain redirect (optional)
+  WWWAliasRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: CreateDNSRecords
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Sub "www.${DomainName}"
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's fixed hosted zone ID
+        DNSName: !Ref CloudFrontDomainName
+        EvaluateTargetHealth: false
+
+Outputs:
+  CertificateArn:
+    Description: "ARN of the ACM certificate"
+    Value: !If
+      - CreateCertificate
+      - !Ref ACMCertificate
+      - ""
+    # Export removed: top-level template will declare exports
+
+  DomainName:
+    Description: "Primary domain name"
+    Value: !If
+      - CreateCertificate
+      - !Ref DomainName
+      - ""
+
+  WWWDomainName:
+    Description: "WWW subdomain"
+    Value: !If
+      - CreateCertificate
+      - !Sub "www.${DomainName}"
+      - ""

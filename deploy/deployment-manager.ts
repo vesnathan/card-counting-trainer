@@ -40,8 +40,8 @@ import {
   Capability,
 } from "@aws-sdk/client-cloudformation";
 
-// Load environment variables from mono-repo root
-config({ path: path.resolve(__dirname, "../../.env") });
+// Load environment variables from project root
+config({ path: path.resolve(__dirname, "../.env") });
 
 export class DeploymentManager {
   private awsUtils!: AwsUtils;
@@ -94,12 +94,12 @@ export class DeploymentManager {
         ? this.forceDeleteManager
         : new ForceDeleteManager(effectiveRegion);
     const fullStackName = getStackName(stackType, stage);
-    const stackIdentifier = `nlmonorepo-${stackType.toLowerCase()}`;
+    const stackIdentifier = `${stackType.toLowerCase()}`;
 
     logger.info(
       `Starting force delete for stack ${fullStackName} in region ${effectiveRegion}`,
     );
-    // forceDeleteStack expects a base identifier (e.g., nlmonorepo-cwl) so pass stackIdentifier
+    // forceDeleteStack expects a base identifier (e.g., cwl) so pass stackIdentifier
     await forceDeleteManager.forceDeleteStack(
       stackIdentifier,
       stackType,
@@ -124,7 +124,7 @@ export class DeploymentManager {
 
     // For The Story Hub prod, also check and delete DNS stack in us-east-1
     if (stackType === StackType.TheStoryHub && stage === "prod") {
-      const dnsStackName = `nlmonorepo-thestoryhub-dns-${stage}`;
+      const dnsStackName = `thestoryhub-dns-${stage}`;
       const dnsRegion = "us-east-1";
 
       try {
@@ -136,7 +136,7 @@ export class DeploymentManager {
           logger.info(`DNS stack found. Deleting...`);
           const forceDeleteManager = new ForceDeleteManager(dnsRegion, stage);
           await forceDeleteManager.forceDeleteStack(
-            "nlmonorepo-thestoryhub-dns",
+            "thestoryhub-dns",
             stackType,
             stage,
           );
@@ -166,8 +166,8 @@ export class DeploymentManager {
 
         // Use ForceDeleteManager to properly handle S3 bucket cleanup
         const forceDeleteManager = new ForceDeleteManager(region, stage);
-        // Use the base identifier format: nlmonorepo-{stacktype}
-        const stackIdentifier = `nlmonorepo-${stackType.toLowerCase()}`;
+        // Use the base identifier format: {stacktype}
+        const stackIdentifier = `${stackType.toLowerCase()}`;
 
         logger.info(`Cleaning up S3 buckets and other resources...`);
         await forceDeleteManager.forceDeleteStack(
@@ -205,7 +205,7 @@ export class DeploymentManager {
         // Even if stack doesn't exist, try to clean up any orphaned buckets
         logger.info(`Checking for orphaned S3 buckets...`);
         const forceDeleteManager = new ForceDeleteManager(region, stage);
-        const stackIdentifier = `nlmonorepo-${stackType.toLowerCase()}`;
+        const stackIdentifier = `${stackType.toLowerCase()}`;
         // If the stack doesn't exist, still attempt to delete conventional buckets
         // (this handles cases where the CFN stack was removed but buckets remained).
         try {
@@ -841,13 +841,24 @@ export class DeploymentManager {
     stackType: StackType,
     options: DeploymentOptions,
   ): Promise<void> {
-    if (stackType === StackType.CWL && !options.skipUserCreation) {
-      // Corrected: Call createAdminUser and pass the necessary options
-      await this.userManager.createAdminUser({
-        stage: options.stage,
-        adminEmail: options.adminEmail,
-        region: options.region,
-      });
+    const projectConfig = getProjectConfig(stackType);
+
+    if (projectConfig.requiresAdminUser && !options.skipUserCreation) {
+      // Map StackType to the stackType parameter expected by UserSetupManager
+      let userStackType: "cardcountingtrainer" | undefined;
+
+      if (stackType === StackType.CardCountingTrainer) {
+        userStackType = "cardcountingtrainer";
+      }
+
+      if (userStackType) {
+        await this.userManager.createAdminUser({
+          stage: options.stage,
+          adminEmail: options.adminEmail,
+          region: options.region,
+          stackType: userStackType,
+        });
+      }
     }
   }
 

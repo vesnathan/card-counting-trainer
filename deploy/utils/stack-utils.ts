@@ -14,7 +14,15 @@ export function getAppNameForStackType(stackType: StackType): string {
       return "waf";
     case StackType.TheStoryHub:
       return "thestoryhub";
-    default:
+    case StackType.CardCountingTrainer:
+      return "cardcountingtrainer";
+    case StackType.LawnOrder:
+      return "lawnorder";
+    case StackType.AppBuilderStudio:
+      return "appbuilderstudio";
+    case StackType.Shared:
       return "shared";
+    default:
+      throw new Error(`Unknown StackType: ${stackType}`);
   }
 }
